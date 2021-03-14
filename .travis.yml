@@ -13,8 +13,6 @@ jobs:
       env: TOX_ENV=py27-mock-pymongo-pyexecjs
     - python: pypy
       env: TOX_ENV=pypy-mock-pymongo-pyexecjs
-    - python: 3.4
-      env: TOX_ENV=py34-pymongo-pyexecjs
     - python: 3.5
       env: TOX_ENV=py35-pymongo-pyexecjs
     - python: 3.6
