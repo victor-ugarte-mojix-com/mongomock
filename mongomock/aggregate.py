@@ -46,6 +46,7 @@ group_operators = [
     '$sum',
 ]
 arithmetic_operators = [
+    '$round',
     '$abs',
     '$add',
     '$ceil',
@@ -143,6 +144,7 @@ set_operators = [
 ]
 
 type_convertion_operators = [
+    '$toDate',
     '$convert',
     '$toString',
     '$toInt',
@@ -289,6 +291,8 @@ class _Parser(object):
         )
 
     def _handle_arithmetic_operator(self, operator, values):
+        if operator == '$round':
+            return round(self.parse(values))
         if operator == '$abs':
             return abs(self.parse(values))
         if operator == '$add':
@@ -345,6 +349,7 @@ class _Parser(object):
         if operator == '$arrayElemAt':
             key, index = values
             array = self._parse_basic_expression(key)
+            index = self._parse_basic_expression(index)
             return array[index]
         raise NotImplementedError("Although '%s' is a valid project operator for the "
                                   'aggregation pipeline, it is currently not implemented '
@@ -629,6 +634,15 @@ class _Parser(object):
             'in Mongomock.' % operator)
 
     def _handle_type_convertion_operator(self, operator, values):
+        if operator == '$toDate':
+            try:
+                parsed = self.parse(values)
+            except KeyError:
+                return None
+            if isinstance(parsed, float) or isinstance(parsed, int):
+                return datetime.datetime.fromtimestamp(parsed/1000)
+            if isinstance(parsed, str):
+                return datetime.datetime.strptime(parsed,'%Y-%m-%d')
         if operator == '$toString':
             try:
                 parsed = self.parse(values)
