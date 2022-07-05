@@ -885,6 +885,9 @@ class _Parser(object):
                 if set1 != set2:
                     return False
             return True
+        if operator == '$allElementsTrue':
+            result = [value[0] if type(value)==list else value for value in values]
+            return result
         raise NotImplementedError(
             "Although '%s' is a valid set operator for the aggregation "
             'pipeline, it is currently not implemented in Mongomock.' % operator)
