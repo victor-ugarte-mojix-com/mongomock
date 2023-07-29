@@ -244,7 +244,12 @@ def _project_by_spec(doc, combined_projection_spec, is_include, container):
                 raise NotImplementedError('Positional projection is not implemented in mongomock')
             raise OperationFailure('Cannot exclude array elements with the positional operator')
         if key not in doc:
-            continue
+            # Logic included to support renaming in project like {'_id':1, 'field':'$field_2'}
+            if str(spec)[0] == "$":
+                if spec[1:] not in doc:
+                    continue
+            else:
+                continue
 
         if isinstance(spec, dict):
             sub = doc[key]
@@ -255,7 +260,11 @@ def _project_by_spec(doc, combined_projection_spec, is_include, container):
                 doc_copy[key] = _project_by_spec(sub, spec, is_include, container)
         else:
             if is_include:
-                doc_copy[key] = doc[key]
+                # Logic included to support renaming in project like {'_id':1, 'field':'$field_2'}
+                if str(spec)[0] == "$":
+                    doc_copy[key] = doc[spec[1:]]
+                else:
+                    doc_copy[key] = doc[key]
             else:
                 doc_copy.pop(key, None)
 
@@ -1140,7 +1149,7 @@ class Collection(object):
 
         # other than the _id field, all fields must be either includes or
         # excludes, this can evaluate to 0
-        if len(set(list(fields.values()))) > 1:
+        if len(set([i for i in fields.values() if type(i) is not str])) > 1:
             raise ValueError(
                 'You cannot currently mix including and excluding fields.')
 
